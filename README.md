@@ -6,6 +6,95 @@ This is a Terraform module for deploying the EFS refresh orchestrator on AWS.
 
 Basic Example :
 
+## Running the EFS Refresh Step Function
+
+This module includes a shell script `run_efs_refresh.sh` that can be used to launch the Step Function with a JSON input file. The script handles retrieving the Step Function ARN and launching the execution.
+
+### Script Usage
+
+```bash
+./run_efs_refresh.sh --name RefreshEnvEfsKamorionPreprod --input efs_refresh_input.json
+```
+
+Options:
+- `-n, --name NAME`: Name of the Step Function (required)
+- `-i, --input FILE`: JSON input file (required)
+- `-p, --profile PROFILE`: AWS profile to use (optional)
+- `-r, --region REGION`: AWS region (optional, default: eu-west-3)
+- `-h, --help`: Display help information
+
+### Step Function Input Parameters
+
+The Step Function requires a JSON input file with the following parameters:
+
+| Parameter | Description | Required |
+|-----------|-------------|:--------:|
+| `SourceEFSName` | Name of the source EFS file system (usually in prod) | Yes |
+| `EFSName` | Name of the target EFS file system (usually in preprod) | Yes |
+| `AWSBackupRoleArn` | ARN of the IAM role for AWS Backup | Yes |
+| `Encrypted` | Boolean indicating whether the file system should be encrypted | Yes |
+| `KmsKeyId` | ID of the KMS key for encryption | No |
+| `newFileSystem` | Boolean indicating whether to create a new file system | Yes |
+| `DeleteOldEfs` | Boolean indicating whether to delete the old file system | No (default: false) |
+| `EFSLifecyclePolicies` | Lifecycle policies for the file system | Yes |
+| `LambdaEfsFunction` | Name of the Lambda function for EFS operations | Yes |
+| `StoreEfsMetadataInSSM` | Boolean indicating whether to store EFS metadata in SSM | No (default: false) |
+| `EfsIdSSMParameterName` | Name of the SSM parameter for the EFS ID | No |
+| `EfsSubPathSSMParameterName` | Name of the SSM parameter for the EFS sub-path | No |
+| `SecurityGroupID` | List of security group IDs | Yes |
+| `SubnetIDs` | List of subnet IDs | Yes |
+| `DynamoDBTableName` | Name of the DynamoDB table to store refresh state | Yes |
+| `SNSTopicArn` | ARN of the SNS topic for notifications | Yes |
+| `SNSSubject` | Subject of the SNS message in case of success | Yes |
+| `SNSMessage` | Body of the SNS message in case of success | Yes |
+| `SNSSubjectFailure` | Subject of the SNS message in case of failure | Yes |
+| `SNSMessageFailure` | Body of the SNS message in case of failure | Yes |
+| `TagApplication` | Value of the Application tag | Yes |
+| `TagEnvironment` | Value of the Environment tag | Yes |
+| `Tags` | Map of tags to apply to resources | Yes |
+| `ItemsToRestore` | List of items to restore | No |
+
+### Example JSON Input File
+
+```json
+{
+  "SourceEFSName": "kamorion-prod",
+  "EFSName": "kamorion-preprod",
+  "AWSBackupRoleArn": "arn:aws:iam::910712879551:role/service-role/AWSBackupDefaultServiceRole",
+  "Encrypted": true,
+  "KmsKeyId": "alias/aws/elasticfilesystem",
+  "newFileSystem": true,
+  "DeleteOldEfs": true,
+  "EFSLifecyclePolicies": [
+    {
+      "TransitionToIA": "AFTER_30_DAYS"
+    }
+  ],
+  "LambdaEfsFunction": "GetEfsRestoreBackupDirectory-kamorion-preprod",
+  "StoreEfsMetadataInSSM": true,
+  "EfsIdSSMParameterName": "/kamorion/preprod/efs/id",
+  "EfsSubPathSSMParameterName": "/kamorion/preprod/efs/path",
+  "SecurityGroupID": ["sg-0123456789abcdef0"],
+  "SubnetIDs": [
+    "subnet-0381a28930b779eb0",
+    "subnet-06599c4ebc1490f87",
+    "subnet-0a609a34c9101b305"
+  ],
+  "DynamoDBTableName": "RefreshEnvEfsKamorionPreprod",
+  "SNSTopicArn": "arn:aws:sns:eu-west-3:910712879551:RefreshEnvEfsKamorionPreprod",
+  "SNSSubject": "EFS refresh completed successfully",
+  "SNSMessage": "The refresh of the kamorion-preprod EFS file system has been completed successfully.",
+  "SNSSubjectFailure": "EFS refresh failed",
+  "SNSMessageFailure": "The refresh of the kamorion-preprod EFS file system has failed. Please check the logs for more information.",
+  "TagApplication": "kamorion",
+  "TagEnvironment": "preprod",
+  "Tags": {
+    "Application": "kamorion",
+    "Environment": "preprod"
+  }
+}
+```
+
 ```hcl
 module "refresh_efs" {
   source = "akirosit/efs-refresh-orchestrator/aws"

@@ -22,9 +22,4 @@ locals {
   refresh_bucket_id = var.s3_bucket_name == null ? (
     var.create_s3_bucket ? aws_s3_bucket.refresh_bucket[0].id : null
   ) : var.s3_bucket_name
-
-  # SNS Topic ARN
-  sns_topic_arn = var.sns_topic_arn == null ? (
-    aws_sns_topic.refresh_env[0].arn
-  ) : var.sns_topic_arn
 }

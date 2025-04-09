@@ -10,15 +10,13 @@ output "state_machine_name" {
   value = aws_sfn_state_machine.refresh_env.name
 }
 
+# Ces outputs ont été supprimés car les ressources correspondantes sont maintenant gérées en dehors du module
 output "step_function_json_files_local_path" {
-  value = local_file.step_function_json_input.filename
+  value = ""
 }
 
 output "step_function_json_files" {
-  value = {
-    for app_name, object in aws_s3_object.step_function_json_input :
-    app_name => "s3://${object.bucket}/${object.key}"
-  }
+  value = {}
 }
 
 output "step_function_dynamodb_arn" {

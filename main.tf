@@ -4,11 +4,15 @@
 # Dans la version générique, nous n'avons plus besoin de générer les fichiers d'input JSON
 # car ils seront fournis par le module racine (05_refresh_env)
 
+locals {
+  step_function_definition_file = var.use_jsonata_template ? "step_function_definition_jsonata.json" : "step_function_definition.json"
+}
+
 # Une seule step function générique
 resource "aws_sfn_state_machine" "refresh_env" {
   name       = local.name_cc
   role_arn   = aws_iam_role.step_function.arn
-  definition = templatefile("${path.module}/templates/step_function_definition.json", {})
+  definition = templatefile("${path.module}/templates/${local.step_function_definition_file}", {})
 }
 
 # Bucket S3 (optionnel)

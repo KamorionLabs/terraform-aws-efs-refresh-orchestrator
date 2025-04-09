@@ -46,3 +46,9 @@ variable "sns_topic_arn" {
   type        = string
   default     = null
 }
+
+variable "use_jsonata_template" {
+  description = "Use jsonata template to deploy step function"
+  type        = bool
+  default     = false
+}
