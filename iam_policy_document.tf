@@ -105,6 +105,17 @@ data "aws_iam_policy_document" "step_function_role" {
     ]
     resources = [local.aws_backup_arn]
   }
+
+  statement {
+    effect = "Allow"
+    actions = [
+      "kms:Decrypt",
+      "kms:GenerateDataKey",
+      "kms:DescribeKey",
+      "kms:CreateGrant"
+    ]
+    resources = ["*"]
+  }
   statement {
     effect = "Allow"
     actions = [
