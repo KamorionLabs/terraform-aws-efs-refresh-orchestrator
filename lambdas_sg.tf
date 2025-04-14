@@ -37,7 +37,3 @@ resource "aws_security_group_rule" "lambda_https_egress" {
 #   to_port                  = 2049
 #   source_security_group_id = aws_security_group.lambda.id
 # }
-
-output "vpc_security_group_for_lambda" {
-  value = aws_security_group.lambda.id
-}
